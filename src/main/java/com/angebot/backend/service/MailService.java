@@ -29,7 +29,7 @@ public class MailService {
     private  final OfferRepository offerRepository;
     private  final SettingsRepository settingsRepository;
 
-    @Async
+
     public void sendOfferPdf(OfferEmailRequest req) throws MessagingException, IOException {
         byte[] pdfBytes = pdfReportService.buildPdf(req.offerId());
         Offer offer=offerRepository.getReferenceById(req.offerId());
