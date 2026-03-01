@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -28,7 +29,7 @@ public class MailService {
     private  final OfferRepository offerRepository;
     private  final SettingsRepository settingsRepository;
 
-
+    @Async
     public void sendOfferPdf(OfferEmailRequest req) throws MessagingException, IOException {
         byte[] pdfBytes = pdfReportService.buildPdf(req.offerId());
         Offer offer=offerRepository.getReferenceById(req.offerId());
