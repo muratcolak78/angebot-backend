@@ -13,11 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,45 +24,69 @@ public class MailService {
     private final JavaMailSender mailSender;
     private final PdfReportService pdfReportService;
     private final CustomerRepository customerRepository;
-    private  final OfferRepository offerRepository;
-    private  final SettingsRepository settingsRepository;
-
+    private final OfferRepository offerRepository;
+    private final SettingsRepository settingsRepository;
 
     public void sendOfferPdf(OfferEmailRequest req) throws MessagingException, IOException {
+        // 1) PDF erzeugen
         byte[] pdfBytes = pdfReportService.buildPdf(req.offerId());
-        Offer offer=offerRepository.getReferenceById(req.offerId());
 
+        // 2) Offer laden (sauber, ohne Lazy-Probleme)
+        Offer offer = offerRepository.findById(req.offerId())
+                .orElseThrow(() -> new IllegalStateException("Offer not found: " + req.offerId()));
+
+        // 3) Customer laden
         Customer customer = customerRepository.findById(offer.getCustomerId())
                 .orElseThrow(() -> new IllegalStateException("Customer not found: " + offer.getCustomerId()));
-        System.out.println("-------------------- Customer email: "+customer.getEmail());
-        Optional<Settings> userOptional=settingsRepository.findByUserId(offer.getUserId());
-        Settings user= userOptional.get();
-        String userEmail= user.getEmail();
-        System.out.println("-------------------- User email: "+userEmail);
-        System.out.println("-------------------- User firstname and last name: "+user.getFirstName()+" "+user.getLastName());
-        String customerEmail= customer.getEmail();
-        System.out.println(user);
+
+        // 4) Settings / Userdaten laden
+        Settings userSettings = settingsRepository.findByUserId(offer.getUserId())
+                .orElseThrow(() -> new IllegalStateException("Settings not found for userId: " + offer.getUserId()));
+
+        // 5) Zieladresse bestimmen: req.email (optional) sonst customer.email
+        String targetEmail = resolveTargetEmail(req, customer);
 
         String subject = "Angebot #" + req.offerId();
 
-        StringBuilder text=new StringBuilder();
-        text.append("Sehr geehrte/r "+customer.getLastName()+"\n\n");
-        text.append("Anbei finden Sie unser Angebot"+"\n");
-        text.append("Mit freundlichen Grüßen"+"\n\n");
-        text.append(user.getFirstName()+" "+user.getLastName());
-
+        StringBuilder text = new StringBuilder();
+        text.append("Sehr geehrte/r ").append(customer.getLastName()).append("\n\n");
+        text.append("anbei finden Sie unser Angebot.\n\n");
+        text.append("Mit freundlichen Grüßen\n\n");
+        text.append(userSettings.getFirstName()).append(" ").append(userSettings.getLastName());
 
         MimeMessage mail = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mail, true, "UTF-8");
-        helper.setFrom("no-repliy@angebot.de", user.getCompanyName());
-        helper.setTo(customerEmail);
+
+        // Achtung: "From" muss oft eine echte Domain/Adresse sein, die dein SMTP erlaubt.
+        helper.setFrom("no-reply@angebot.de", userSettings.getCompanyName());
+
+        helper.setTo(targetEmail);
         helper.setSubject(subject);
         helper.setText(text.toString(), false);
-        System.out.println("EMAIL :"+user.getEmail());
-        helper.setReplyTo(user.getEmail());
-        helper.addAttachment("angebot-" + req.offerId() + ".pdf",
-                new ByteArrayResource(pdfBytes));
+
+        // Reply-To: Antworten gehen an den Benutzer
+        if (userSettings.getEmail() != null && !userSettings.getEmail().isBlank()) {
+            helper.setReplyTo(userSettings.getEmail());
+        }
+
+        helper.addAttachment(
+                "angebot-" + req.offerId() + ".pdf",
+                new ByteArrayResource(pdfBytes)
+        );
 
         mailSender.send(mail);
+    }
+
+    private String resolveTargetEmail(OfferEmailRequest req, Customer customer) {
+        // req.email kann null oder blank sein
+        if (req.email() != null && !req.email().isBlank()) {
+            return req.email().trim();
+        }
+
+        if (customer.getEmail() == null || customer.getEmail().isBlank()) {
+            throw new IllegalStateException("Customer has no email address (customerId: " + customer.getId() + ")");
+        }
+
+        return customer.getEmail().trim();
     }
 }
