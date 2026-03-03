@@ -3,7 +3,7 @@ package com.angebot.backend.dto;
 import java.util.UUID;
 
 public record SettingsResponse(
-        String fistName,
+        String firstName,
         String lastName,
         String companyName,
         String phone,
