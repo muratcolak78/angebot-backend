@@ -310,11 +310,29 @@ public class PdfReportService {
 
     private Image loadImage(UUID assetId) throws IOException {
         if (assetId == null) {
-            throw new IllegalArgumentException("Asset ID ist leer");
+            return null;
         }
-        return Image.getInstance(assetRepo.findById(assetId)
-                .orElseThrow(() -> new IllegalArgumentException("Logo asset ist leer: " + assetId))
-                .getData());
+
+        byte[] originalBytes = assetRepo.findById(assetId)
+                .orElseThrow(() -> new IllegalArgumentException("Asset nicht gefunden: " + assetId))
+                .getData();
+
+        // 1️⃣ Byte → BufferedImage
+        java.awt.image.BufferedImage bufferedImage =
+                javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(originalBytes));
+
+        if (bufferedImage == null) {
+            log.warn("Logo konnte nicht decodiert werden");
+            return null;
+        }
+
+        // 2️⃣ PNG olarak yeniden encode et
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(bufferedImage, "png", baos);
+        byte[] safePng = baos.toByteArray();
+
+        // 3️⃣ PDF Image oluştur
+        return Image.getInstance(safePng);
     }
 
     private String safe(Object value) {
