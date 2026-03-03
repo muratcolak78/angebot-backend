@@ -58,7 +58,7 @@ public class MailService {
         MimeMessageHelper helper = new MimeMessageHelper(mail, true, "UTF-8");
 
         // Achtung: "From" muss oft eine echte Domain/Adresse sein, die dein SMTP erlaubt.
-        helper.setFrom("no-reply@angebot.de", userSettings.getCompanyName());
+        helper.setFrom("test.colak@gmail.com", userSettings.getCompanyName());
 
         helper.setTo(targetEmail);
         helper.setSubject(subject);
@@ -76,7 +76,6 @@ public class MailService {
 
         mailSender.send(mail);
     }
-
     private String resolveTargetEmail(OfferEmailRequest req, Customer customer) {
         // req.email kann null oder blank sein
         if (req.email() != null && !req.email().isBlank()) {
