@@ -35,11 +35,11 @@ public class OfferService {
 
         // 1. RateCard al (user'ın fiyatları)
         RateCard rateCard = rateCardRepo.findByUserId(userId)
-                .orElseThrow(() -> new NotFoundException("Fiyat tablosu yok"));
+                .orElseThrow(() -> new NotFoundException("Keine Preisliste"));
 
         // 2. Customer validate ve bilgilerini al
         Customer customer = customerRepo.findByIdAndUserId(dto.getCustomerId(), userId)
-                .orElseThrow(() -> new NotFoundException("Müşteri yok"));
+                .orElseThrow(() -> new NotFoundException("Keine Kunden"));
 
         // 3. Yeni Offer + Measurements
         Offer offer = mapper.toEntity(dto);
@@ -63,15 +63,15 @@ public class OfferService {
 
         Offer saved = offerRepo.save(offer);
 
-        // DEĞİŞİKLİK: Customer bilgileriyle birlikte DTO döndür
+        // ÄNDERUNG: DTO zusammen mit Kundendaten zurückgeben
         return mapper.toDTOWithCustomer(saved, customer);
     }
 
-    // DEĞİŞİKLİK: getMyOffers - artık müşteri bilgileriyle birlikte dönüyor
+    // ÄNDERUNG: getMyOffers – gibt nun auch Kundeninformationen zurück
     public List<OfferDTO> getMyOffers() {
         UUID userId = jwtUtil.getCurrentUserId();
 
-        // Tarihe göre sıralı getir (en yeni en üstte)
+        // Nach Datum sortieren (neueste oben)
         List<Offer> offers = offerRepo.findByUserIdOrderByCreatedAtDesc(userId);
 
         return offers.stream()
@@ -83,7 +83,7 @@ public class OfferService {
                 .collect(Collectors.toList());
     }
 
-    // DEĞİŞİKLİK: getOffer - müşteri bilgileriyle birlikte dön
+    // ÄNDERUNG: getOffer – zusammen mit den Kundendaten zurückgeben
     public OfferDTO getOffer(Long id) {
         UUID userId = jwtUtil.getCurrentUserId();
         Offer offer = offerRepo.findByUserIdAndId(userId, id)
@@ -130,11 +130,11 @@ public class OfferService {
 
         Offer saved = offerRepo.save(offer);
 
-        // DEĞİŞİKLİK: Customer bilgileriyle birlikte DTO döndür
+        // ÄNDERUNG: DTO zusammen mit Kundendaten zurückgeben
         return mapper.toDTOWithCustomer(saved, customer);
     }
 
-    // YENİ: Delete metodu ekleyelim
+    // Löschmethode
     @Transactional
     public void deleteOffer(Long id) {
         UUID userId = jwtUtil.getCurrentUserId();
