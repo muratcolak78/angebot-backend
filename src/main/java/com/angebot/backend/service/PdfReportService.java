@@ -28,7 +28,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-// @Transactional(readOnly = true) // BUNU KALDIRIYORUZ!
 public class PdfReportService {
 
     private final SettingsRepository settingsRepo;

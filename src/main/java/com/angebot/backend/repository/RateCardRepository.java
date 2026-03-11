@@ -10,6 +10,4 @@ import java.util.UUID;
 @Repository
 public interface RateCardRepository extends JpaRepository<RateCard, UUID> {
     Optional<RateCard> findByUserId(UUID userId);
-    Optional<RateCard> findLatestByUserId(UUID userId);
-    boolean existsByUserId(UUID userId);
 }

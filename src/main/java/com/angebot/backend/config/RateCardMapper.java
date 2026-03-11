@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RateCardMapper {
 
-    // GET → Tam DTO
+    // GET
     public RateCardDTO toDTO(RateCard entity) {
         RateCardDTO dto = new RateCardDTO();
         dto.setId(entity.getId());
@@ -23,7 +23,7 @@ public class RateCardMapper {
         return dto;
     }
 
-    // PUT → EXISTING entity UPDATE et!
+    // PUT
     public void updateEntity(RateCardUpdateDTO dto, RateCard entity) {
         // Null-safe partial update
         if (dto.getWallM2Price() != null)
