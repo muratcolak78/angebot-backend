@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: angebot-postgres
+    environment:
+      POSTGRES_DB: angebotdb
+      POSTGRES_USER: angebotuser
+      POSTGRES_PASSWORD: angebotpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - angebot_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build: .
+    container_name: angebot-backend
+    depends_on:
+      - postgres
+    environment:
+       PORT: 8080
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  angebot_postgres_data:
