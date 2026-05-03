@@ -30,9 +30,14 @@ protected void doFilterInternal(HttpServletRequest request,
                                 FilterChain filterChain)
         throws ServletException, IOException {
 
-    // ✅ CORS preflight bypass
+    // 💣 FORCE CORS
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "*");
+
+    // OPTIONS direkt geç
     if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-        filterChain.doFilter(request, response);
+        response.setStatus(HttpServletResponse.SC_OK);
         return;
     }
 
@@ -44,7 +49,6 @@ protected void doFilterInternal(HttpServletRequest request,
     }
 
     String token = auth.substring(7);
-    log.info("token is -> {}", token);
 
     try {
         String email = jwtService.extractEmail(token);
@@ -57,14 +61,13 @@ protected void doFilterInternal(HttpServletRequest request,
         }
 
     } catch (Exception e) {
-        log.error("JWT error: {}", e.getMessage());
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.getWriter().write("{\"error\": \"Invalid or expired token!\"}");
         return;
     }
 
     filterChain.doFilter(request, response);
 }
+
+   
     
 }
