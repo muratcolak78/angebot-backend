@@ -25,39 +25,46 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String auth=request.getHeader("Authorization");
+protected void doFilterInternal(HttpServletRequest request,
+                                HttpServletResponse response,
+                                FilterChain filterChain)
+        throws ServletException, IOException {
 
-        if(auth==null || !auth.startsWith("Bearer")){
-            filterChain.doFilter(request,response);
-            return;
-        }
-        // if there is authorization in the Header and start with Bearer
-        String token= auth.substring(7);
-        log.info("token is -> {}",token);
-
-        try{
-            // we are extracting the email
-            String email=jwtService.extractEmail(token);
-            log.info(email);
-            // is there user?
-            if(email!=null && SecurityContextHolder.getContext().getAuthentication()==null){
-              //  log.info("email i snot null->{}", email);
-                // we are generating a new token
-                var authToken=new UsernamePasswordAuthenticationToken(
-                        email, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                );
-                //log.info("authToken is -->{}", authToken);
-                // then saying to Security service that: he this guy can make what he wants
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
-        }catch (Exception e){
-            log.error("JWT error: {}", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\": \"Invalid or expired token!\"}");
-            return;
-        }
-        filterChain.doFilter(request,response);
+    // ✅ CORS preflight bypass
+    if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+        filterChain.doFilter(request, response);
+        return;
     }
+
+    String auth = request.getHeader("Authorization");
+
+    if (auth == null || !auth.startsWith("Bearer")) {
+        filterChain.doFilter(request, response);
+        return;
+    }
+
+    String token = auth.substring(7);
+    log.info("token is -> {}", token);
+
+    try {
+        String email = jwtService.extractEmail(token);
+
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            var authToken = new UsernamePasswordAuthenticationToken(
+                    email, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
+            );
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        }
+
+    } catch (Exception e) {
+        log.error("JWT error: {}", e.getMessage());
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\": \"Invalid or expired token!\"}");
+        return;
+    }
+
+    filterChain.doFilter(request, response);
+}
+    
 }
