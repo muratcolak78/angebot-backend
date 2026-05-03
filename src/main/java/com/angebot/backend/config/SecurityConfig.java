@@ -42,12 +42,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Vercel domain'lerini ekle
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:3000",
-                "https://angebotfuermaler.vercel.app", // Sizin Vercel URL'iniz
-                "https://your-app-git-main.vercel.app", // Vercel preview URL
-                "https://*.vercel.app" // Tüm Vercel alt domainleri
-        ));
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
 
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
@@ -66,7 +61,7 @@ public class SecurityConfig {
                 "Content-Disposition"
         ));
 
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
