@@ -40,7 +40,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Vercel domain'lerini ekle
-        configuration.setAllowedOrigins(Arrays.asList(
+        configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:3000",
                 "https://angebotfuermaler.vercel.app", // Sizin Vercel URL'iniz
                 "https://your-app-git-main.vercel.app", // Vercel preview URL
