@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: angebotuser
       POSTGRES_PASSWORD: angebotpass
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - angebot_postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -18,14 +18,12 @@ services:
     depends_on:
       - postgres
     environment:
-       PORT: 8080
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      APP_JWT_SECRET: ${APP_JWT_SECRET}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/angebotdb
+      SPRING_DATASOURCE_USERNAME: angebotuser
+      SPRING_DATASOURCE_PASSWORD: angebotpass
     ports:
-      - "8080:8080"
+      - "8081:8080"
     restart: unless-stopped
 
 volumes:
