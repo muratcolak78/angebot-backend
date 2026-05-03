@@ -24,13 +24,14 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/health").permitAll()
-                        .requestMatchers("/api/pdf/**").authenticated()
-                        .requestMatchers("/api/mail/**").authenticated()
-                        .anyRequest().authenticated()
-                )
+               .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 💣 BU ŞART
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/health").permitAll()
+                    .requestMatchers("/api/pdf/**").authenticated()
+                    .requestMatchers("/api/mail/**").authenticated()
+                    .anyRequest().authenticated()
+            )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
